@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Para mi amor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5eee6;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Pantalla de inicio minimalista */
+        #welcomeScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ffecd2 100%);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 1000;
+            cursor: pointer; transition: opacity 1.5s ease, transform 1.5s ease;
+        }
+        #welcomeScreen.hide { opacity: 0; transform: scale(0.8); pointer-events: none; }
+        
+        .heart-container {
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            transition: transform 0.3s ease;
+            pointer-events: all;
+        }
+
+        .heart-container:hover {
+            transform: scale(1.1);
+        }
+
+        .big-heart {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            pointer-events: all;
+        }
+
+        .big-heart::before,
+        .big-heart::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 240px;
+            background: linear-gradient(135deg, #ff1493, #dc143c);
+            border-radius: 150px 150px 0 0;
+            box-shadow: 0 20px 60px rgba(220, 20, 60, 0.4);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .heart-container:hover .big-heart::before,
+        .heart-container:hover .big-heart::after {
+            box-shadow: 0 25px 80px rgba(220, 20, 60, 0.6);
+        }
+
+        .big-heart::before {
+            left: 75px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .big-heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .heart-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .heart-text h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .heart-text p {
+            font-size: 1.2rem;
+            font-style: italic;
+            opacity: 0.9;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mini-heart {
+            position: absolute;
+            font-size: 20px;
+            color: rgba(255, 20, 147, 0.6);
+            animation: rise linear infinite;
+        }
+
+        @keyframes rise {
+            0% { bottom: -50px; opacity: 0; transform: rotate(0deg); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { bottom: 110%; opacity: 0; transform: rotate(360deg); }
+        }
+        
+        .start-heart { color: #e74c3c; font-size: 50px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* Contenedor Principal */
+        .card-container {
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Sección de Arriba: Texto y Árbol */
+        .top-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 250px;
+            margin-bottom: 20px;
+        }
+
+        .text-content {
+            flex: 1;
+            padding-right: 15px;
+            color: #5a463a;
+            /* Oculto al inicio */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .text-content h2 { font-size: 1.1rem; margin-bottom: 15px; font-weight: normal; }
+        .text-content p { font-size: 0.8rem; line-height: 1.6; margin-bottom: 10px; opacity: 0.9; }
+        .signature { margin-top: 15px; font-style: italic; font-size: 0.8rem; }
+
+        /* Cursor parpadeante para el typewriter */
+        .typewriter-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #5a463a;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.7s step-end infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .tree-container {
+            flex: 1;
+            height: 250px;
+            position: relative;
+        }
+
+        #treeCanvas { width: 100%; height: 100%; }
+
+        /* Línea Divisora y Contador Inferior */
+        .bottom-section {
+            border-top: 1px solid #5a463a;
+            padding-top: 15px;
+            color: #5a463a;
+            text-align: center;
+            /* Oculto al inicio */
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .timer-label { font-size: 0.8rem; margin-bottom: 5px; }
+        .timer-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .timer-display span { font-size: 0.7rem; font-weight: normal; margin-right: 5px; }
+
+        /* Corazones flotando de fondo */
+        #bgCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+
+        @media (max-width: 400px) {
+            .text-content h2 { font-size: 1rem; }
+            .text-content p { font-size: 0.72rem; }
+        }
+
+        /* Botón de repetir */
+        #replayBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #ff69b4, #dc143c);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 18px;
+            color: white;
+            font-size: 0.8rem;
+            font-family: 'Segoe UI', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease;
+            pointer-events: none;
+        }
+
+        #replayBtn.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        #replayBtn:hover {
+            box-shadow: 0 6px 20px rgba(220, 20, 60, 0.6);
+            transform: translateY(-2px);
+        }
+
+        #replayBtn:active {
+            transform: scale(0.95);
+        }
+
+        #replayBtn .btn-icon {
+            font-size: 1rem;
+            display: inline-block;
+            transition: transform 0.4s ease;
+        }
+
+        #replayBtn:hover .btn-icon {
+            transform: rotate(360deg);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="welcomeScreen">
+        <div class="floating-hearts" id="floatingHearts"></div>
+        <div class="heart-container">
+            <div class="big-heart"></div>
+            <div class="heart-text">
+                <h1>San Valentín</h1>
+                <p>Toca para comenzar</p>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="bgCanvas"></canvas>
+    <button id="replayBtn"><span class="btn-icon">🔄</span> Repetir</button>
+
+    <div class="card-container">
+        <div class="top-section">
+            <div class="text-content" id="textoPrincipal">
+                <h2 id="tw-title"></h2>
+                <p id="tw-p1"></p>
+                <p id="tw-p2"></p>
+                <p id="tw-p3"></p>
+            </div>
+            <div class="tree-container">
+                <canvas id="treeCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="bottom-section" id="bottomSection">
+            <div class="timer-label">💖¿Te gustaría conocernos?💖</div>
+            <div class="timer-display"></div>
+        </div>
+    </div>
+
+    <script>
+        const treeCanvas = document.getElementById('treeCanvas');
+        const bgCanvas = document.getElementById('bgCanvas');
+        const ctx = treeCanvas.getContext('2d');
+        const bgCtx = bgCanvas.getContext('2d');
+
+        let hearts = [];
+        let fallingHearts = [];
+        let animationStartTime = 0;
+        let TREE_BASE_X, TREE_BASE_Y, TRUNK_HEIGHT;
+        let typewriterStarted = false;
+
+        // Textos a revelar
+        const texts = [
+            { id: 'tw-title', text: 'Para una princesa:',      delay: 0   },
+            { id: 'tw-p1',    text: 'Tenía la idea de que las princesas solo eran en caricaturas, hasta que te vi.', delay: 700  },
+            { id: 'tw-p2',    text: 'Si algún día te llego a conocer, no tendré palabras para describir tanta belleza.', delay: 2200 },
+            { id: 'tw-p3',    text: 'Cuando me pregunten de la perfección sin duda mostrare una foto tuya.',           delay: 4200 },
+        ];
+
+        // Tiempo (ms) tras el inicio de la animación en que empieza el typewriter
+        const TYPEWRITER_START = 7500;
+        // Velocidad de escritura (ms por carácter)
+        const CHAR_SPEED = 38;
+
+        function replayAll() {
+            // Ocultar botón
+            document.getElementById('replayBtn').classList.remove('visible');
+            // Resetear textos y opacidades
+            document.getElementById('textoPrincipal').style.opacity = '0';
+            document.getElementById('bottomSection').style.opacity = '0';
+            texts.forEach(t => { document.getElementById(t.id).textContent = ''; });
+            // Reiniciar animación
+            resize();
+            createTree();
+            animationStartTime = Date.now();
+        }
+
+        document.getElementById('replayBtn').addEventListener('click', replayAll);
+
+        function typewriterSequence() {
+            const textContent = document.getElementById('textoPrincipal');
+            textContent.style.opacity = '1';
+
+            // Añade cursor temporal al primer elemento
+            let activeCursor = null;
+
+            function addCursor(el) {
+                if (activeCursor) activeCursor.remove();
+                activeCursor = document.createElement('span');
+                activeCursor.className = 'typewriter-cursor';
+                el.appendChild(activeCursor);
+            }
+
+            function typeElement(elId, text, onDone) {
+                const el = document.getElementById(elId);
+                el.textContent = '';
+                addCursor(el);
+                let i = 0;
+                function tick() {
+                    if (i < text.length) {
+                        // Insert char before cursor
+                        el.insertBefore(document.createTextNode(text[i]), activeCursor);
+                        i++;
+                        setTimeout(tick, CHAR_SPEED);
+                    } else {
+                        if (onDone) onDone();
+                    }
+                }
+                tick();
+            }
+
+            function runNext(index) {
+                if (index >= texts.length) {
+                    // Quitar cursor al terminar todo
+                    if (activeCursor) activeCursor.remove();
+                    // Mostrar sección inferior con fade
+                    setTimeout(() => {
+                        document.getElementById('bottomSection').style.opacity = '1';
+                    }, 400);
+                    // Mostrar botón replay
+                    setTimeout(() => {
+                        document.getElementById('replayBtn').classList.add('visible');
+                    }, 900);
+                    return;
+                }
+                const item = texts[index];
+                setTimeout(() => {
+                    typeElement(item.id, item.text, () => runNext(index + 1));
+                }, index === 0 ? 0 : 300); // pequeña pausa entre párrafos
+            }
+
+            runNext(0);
+        }
+
+        // Iniciar al hacer click
+        document.getElementById('welcomeScreen').addEventListener('click', () => {
+            document.getElementById('welcomeScreen').classList.add('hide');
+            init();
+        });
+
+        // Crear corazones flotantes en la pantalla de inicio
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'mini-heart';
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                container.appendChild(heart);
+            }
+        }
+
+        createFloatingHearts();
+
+        function init() {
+            resize();
+            createTree();
+            animationStartTime = Date.now();
+            animate();
+        }
+
+        function resize() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            treeCanvas.width = treeCanvas.parentElement.offsetWidth;
+            treeCanvas.height = treeCanvas.parentElement.offsetHeight;
+            
+            TREE_BASE_X = treeCanvas.width / 2;
+            TREE_BASE_Y = treeCanvas.height * 0.98;
+            TRUNK_HEIGHT = 140;
+        }
+
+        class FallingHeart {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 2.2 + 2.2;
+                this.speedY = Math.random() * 0.8 + 0.4;
+                this.speedX = -Math.random() * 1.5 - 0.8;
+                this.opacity = 1;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.08;
+                this.color = this.getRandomPinkRed();
+                this.life = 1;
+            }
+            
+            getRandomPinkRed() {
+                const colors = [
+                    '#FF1493', '#DC143C', '#FF69B4', '#FF6B8A',
+                    '#FF4D6D', '#C9184A', '#FF758F', '#FF8FA3'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+                this.life -= 0.0015;
+                this.opacity = this.life;
+                return this.life > 0 && this.y < bgCanvas.height;
+            }
+            
+            draw(context) {
+                context.save();
+                context.translate(this.x, this.y);
+                context.rotate(this.rotation);
+                context.globalAlpha = this.opacity;
+                const size = this.size;
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.moveTo(0, 0);
+                context.bezierCurveTo(0, -size/2, -size, -size/2, -size, 0);
+                context.bezierCurveTo(-size, size/2, 0, size, 0, size*1.5);
+                context.bezierCurveTo(0, size, size, size/2, size, 0);
+                context.bezierCurveTo(size, -size/2, 0, -size/2, 0, 0);
+                context.fill();
+                context.restore();
+            }
+        }
+
+        class TreeHeart {
+            constructor(targetX, targetY, delay, size, shouldFall) {
+                this.startX = TREE_BASE_X;
+                this.startY = TREE_BASE_Y - TRUNK_HEIGHT;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.currentX = this.startX;
+                this.currentY = this.startY;
+                this.delay = delay;
+                this.size = size;
+                this.progress = 0;
+                this.color = this.getRandomPinkRed();
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.03;
+                this.scale = 0;
+                this.shouldFallLater = shouldFall;
+                this.hasFallen = false;
+                this.fallDelay = delay + 5000 + Math.random() * 5000;
+            }
+            
+            getRandomPinkRed() {
+                const colors = [
+                    '#FF1493', '#DC143C', '#FF69B4', '#FF6B8A',
+                    '#FF4D6D', '#C9184A', '#FF758F', '#FF8FA3',
+                    '#E91E63', '#F06292', '#FF85A1', '#FFB6C1',
+                    '#FF4081', '#E91E63', '#F48FB1', '#EC407A'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            update(elapsed) {
+                const adjustedElapsed = elapsed - this.delay;
+                if (adjustedElapsed < 0) return;
+                const duration = 700;
+                this.progress = Math.min(adjustedElapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - this.progress, 3);
+                this.currentX = this.startX + (this.targetX - this.startX) * eased;
+                this.currentY = this.startY + (this.targetY - this.startY) * eased;
+                this.scale = eased;
+                this.rotation += this.rotationSpeed;
+            }
+            
+            draw() {
+                if (this.progress === 0 || this.hasFallen) return;
+                ctx.save();
+                ctx.translate(this.currentX, this.currentY);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.progress;
+                const size = this.size * this.scale;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(0, -size/2, -size, -size/2, -size, 0);
+                ctx.bezierCurveTo(-size, size/2, 0, size, 0, size*1.5);
+                ctx.bezierCurveTo(0, size, size, size/2, size, 0);
+                ctx.bezierCurveTo(size, -size/2, 0, -size/2, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createTree() {
+            hearts = [];
+            fallingHearts = [];
+            typewriterStarted = false;
+            
+            let delay = 800;
+            const heartCenterX = TREE_BASE_X;
+            const heartCenterY = treeCanvas.height * 0.38;
+            const scale = Math.min(treeCanvas.width, treeCanvas.height) / 45;
+            const numPoints = 350;
+            
+            for (let i = 0; i < numPoints; i++) {
+                const t = (i / numPoints) * Math.PI * 2;
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                const variation = 0.92 + Math.random() * 0.16;
+                hearts.push(new TreeHeart(
+                    heartCenterX + x * scale * variation,
+                    heartCenterY + y * scale * variation,
+                    delay,
+                    Math.random() * 2.0 + 2.4,
+                    Math.random() < 0.10
+                ));
+                delay += 5;
+            }
+            
+            for (let i = 0; i < 1100; i++) {
+                const t = Math.random() * Math.PI * 2;
+                const r = Math.sqrt(Math.random()) * 0.95;
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                hearts.push(new TreeHeart(
+                    heartCenterX + x * scale * r,
+                    heartCenterY + y * scale * r,
+                    delay,
+                    Math.random() * 1.8 + 2.2,
+                    Math.random() < 0.10
+                ));
+                delay += 3.5;
+            }
+        }
+
+        function drawTrunk(progress) {
+            const currentProgress = Math.min(progress * 2, 1);
+            ctx.save();
+            const trunkHeight = TRUNK_HEIGHT * currentProgress;
+            const bottomWidth = 24;
+            const topWidth = 7;
+            const gradient = ctx.createLinearGradient(
+                TREE_BASE_X - bottomWidth/2, TREE_BASE_Y,
+                TREE_BASE_X + bottomWidth/2, TREE_BASE_Y
+            );
+            gradient.addColorStop(0, '#4A2C1A');
+            gradient.addColorStop(0.3, '#6D4C3D');
+            gradient.addColorStop(0.7, '#6D4C3D');
+            gradient.addColorStop(1, '#4A2C1A');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(TREE_BASE_X - bottomWidth/2, TREE_BASE_Y);
+            ctx.lineTo(TREE_BASE_X - topWidth/2, TREE_BASE_Y - trunkHeight);
+            ctx.lineTo(TREE_BASE_X + topWidth/2, TREE_BASE_Y - trunkHeight);
+            ctx.lineTo(TREE_BASE_X + bottomWidth/2, TREE_BASE_Y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(62, 39, 35, 0.4)';
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < 6; i++) {
+                const y = TREE_BASE_Y - (trunkHeight * (i / 6));
+                const widthAtY = bottomWidth - (bottomWidth - topWidth) * (i / 6);
+                const offset = Math.sin(i * 0.8) * 1.2;
+                ctx.beginPath();
+                ctx.moveTo(TREE_BASE_X - widthAtY/2 + offset, y);
+                ctx.lineTo(TREE_BASE_X + widthAtY/2 + offset, y);
+                ctx.stroke();
+            }
+            ctx.strokeStyle = "#5D4037";
+            ctx.lineCap = "round";
+            function branch(x, y, length, angle, width, branchProgress) {
+                if (width < 1) return;
+                const x2 = x + Math.cos(angle) * length * branchProgress;
+                const y2 = y + Math.sin(angle) * length * branchProgress;
+                ctx.lineWidth = width;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                if (branchProgress > 0.6 && width > 2) {
+                    branch(x2, y2, length * 0.65, angle - 0.35, width * 0.6, branchProgress);
+                    branch(x2, y2, length * 0.65, angle + 0.35, width * 0.6, branchProgress);
+                }
+            }
+            if (currentProgress > 0.2) {
+                const branchStart = TREE_BASE_Y - trunkHeight * 0.85;
+                branch(TREE_BASE_X, branchStart, 20, -Math.PI/2 - 0.35, 3.5, currentProgress);
+                branch(TREE_BASE_X, branchStart, 20, -Math.PI/2 + 0.35, 3.5, currentProgress);
+                const branchStart2 = TREE_BASE_Y - trunkHeight * 0.75;
+                branch(TREE_BASE_X, branchStart2, 18, -Math.PI/2 - 0.7, 2.8, currentProgress);
+                branch(TREE_BASE_X, branchStart2, 18, -Math.PI/2 + 0.7, 2.8, currentProgress);
+            }
+            ctx.restore();
+        }
+
+        function animate() {
+            const elapsed = Date.now() - animationStartTime;
+            const progress = Math.min(elapsed / 5000, 1);
+            
+            ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            
+            if (elapsed > 8000 && Math.random() < 0.025) {
+                const spawnX = (treeCanvas.parentElement.getBoundingClientRect().left + TREE_BASE_X) + (Math.random() - 0.5) * 60;
+                const spawnY = treeCanvas.parentElement.getBoundingClientRect().top + treeCanvas.height * 0.22;
+                fallingHearts.push(new FallingHeart(spawnX, spawnY));
+            }
+
+            fallingHearts = fallingHearts.filter(heart => {
+                const alive = heart.update();
+                if (alive) heart.draw(bgCtx);
+                return alive;
+            });
+            
+            drawTrunk(progress);
+            
+            hearts.forEach(heart => {
+                heart.update(elapsed);
+                heart.draw();
+            });
+
+            // Disparar el typewriter cuando el árbol esté listo
+            if (!typewriterStarted && elapsed >= TYPEWRITER_START) {
+                typewriterStarted = true;
+                typewriterSequence();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            createTree();
+            animationStartTime = Date.now();
+            // Resetear textos y opacidades
+            document.getElementById('replayBtn').classList.remove('visible');
+            document.getElementById('textoPrincipal').style.opacity = '0';
+            document.getElementById('bottomSection').style.opacity = '0';
+            texts.forEach(t => { document.getElementById(t.id).textContent = ''; });
+        });
+    </script>
+</body>
+</html>
